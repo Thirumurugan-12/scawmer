@@ -83,6 +83,7 @@ async function sendToAPI(content) {
 // Use a single message listener
 const messageHandler = (request, sender, sendResponse) => {
   if (request.action === 'sendToAPI') {
+    console.log("[Background] Received sendToAPI request:", request.content);
     sendToAPI(request.content)
       .then(sendResponse)
       .catch(error => {
