@@ -57,9 +57,12 @@ async function loadSettings() {
     proofreadPrompt: defaultPrompts.proofread,
     summarizePrompt: defaultPrompts.summarize,
     rewritePrompt: defaultPrompts.rewrite,
-    makeListPrompt: defaultPrompts.makeList
+    rewritePrompt: defaultPrompts.rewrite,
+    makeListPrompt: defaultPrompts.makeList,
+    handoffEnabled: false,
+    systemPersona: "You are a gullible elderly person who is confused but trying to help."
   });
-  
+
   // Populate form fields
   document.getElementById('apiType').value = settings.apiType;
   document.getElementById('apiUrl').value = settings.apiUrl;
@@ -67,16 +70,39 @@ async function loadSettings() {
   document.getElementById('modelName').value = settings.modelName;
   document.getElementById('maxTokens').value = settings.maxTokens;
   document.getElementById('theme').value = settings.theme;
-  
+
   // Show/hide API URL based on API type
   const customApiSection = document.getElementById('customApiSection');
   customApiSection.style.display = settings.apiType === 'custom' ? 'block' : 'none';
-  
+
   // Populate prompt fields
   document.getElementById('proofreadPrompt').value = settings.proofreadPrompt || defaultPrompts.proofread;
   document.getElementById('summarizePrompt').value = settings.summarizePrompt || defaultPrompts.summarize;
   document.getElementById('rewritePrompt').value = settings.rewritePrompt || defaultPrompts.rewrite;
   document.getElementById('makeListPrompt').value = settings.makeListPrompt || defaultPrompts.makeList;
+
+  // Handoff Settings
+  const handoffToggle = document.getElementById('handoffToggle');
+  const systemPersona = document.getElementById('systemPersona');
+  const handoffControls = document.getElementById('handoffControls');
+  const handoffStatus = document.getElementById('handoffStatus');
+
+  if (handoffToggle) {
+    handoffToggle.checked = settings.handoffEnabled;
+    if (settings.handoffEnabled) {
+      handoffControls.classList.remove('hidden');
+      handoffStatus.textContent = "Scanning..."; // Initial state
+      handoffStatus.className = "px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+    } else {
+      handoffControls.classList.add('hidden');
+      handoffStatus.textContent = "Disabled";
+      handoffStatus.className = "px-2 py-0.5 rounded-full bg-surface-100 text-surface-600 dark:bg-dark-surface-200 dark:text-dark-surface-400";
+    }
+  }
+
+  if (systemPersona) {
+    systemPersona.value = settings.systemPersona || "You are a gullible elderly person who is confused but trying to help.";
+  }
 
   applyTheme(settings.theme);
 }
@@ -91,17 +117,17 @@ function handleApiTypeChange(event) {
 async function handleSaveSettings() {
   const saveButton = document.getElementById('saveSettings');
   const saveMessage = document.getElementById('saveMessage');
-  
+
   saveButton.disabled = true;
   saveMessage.classList.remove('hidden');
-  
+
   try {
     const apiType = document.getElementById('apiType').value;
     const modelName = document.getElementById('modelName').value.trim();
     const apiToken = document.getElementById('apiToken').value.trim();
     const maxTokens = parseInt(document.getElementById('maxTokens').value);
     const theme = document.getElementById('theme').value;
-    
+
     // Determine API URL based on type
     let apiUrl;
     if (apiType === 'custom') {
@@ -140,7 +166,10 @@ async function handleSaveSettings() {
       proofreadPrompt,
       summarizePrompt,
       rewritePrompt,
-      makeListPrompt
+      rewritePrompt,
+      makeListPrompt,
+      handoffEnabled: document.getElementById('handoffToggle')?.checked || false,
+      systemPersona: document.getElementById('systemPersona')?.value || ""
     });
 
     saveMessage.textContent = 'Settings saved successfully';
@@ -167,7 +196,7 @@ async function handleSaveSettings() {
 
 // Configure marked with highlight.js
 marked.setOptions({
-  highlight: function(code, lang) {
+  highlight: function (code, lang) {
     if (lang && hljs.getLanguage(lang)) {
       return hljs.highlight(code, { language: lang }).value;
     }
@@ -191,12 +220,12 @@ let pollInterval = null;
 async function pollForContentChanges() {
   try {
     const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
-    
+
     if (!tab || !tab.url || tab.url.startsWith('chrome://')) {
       return;
     }
 
-    const response = await browserAPI.tabs.sendMessage(tab.id, { 
+    const response = await browserAPI.tabs.sendMessage(tab.id, {
       action: 'getContent'
     }).catch(() => null);
 
@@ -215,13 +244,13 @@ async function pollForContentChanges() {
 async function loadTabContent() {
   const loading = document.getElementById('loading');
   const content = document.getElementById('content');
-  
+
   loading.classList.remove('hidden');
   content.value = '';
-  
+
   try {
     const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
-    
+
     if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('about:')) {
       content.value = "Cannot access this page's content.";
       return;
@@ -233,7 +262,7 @@ async function loadTabContent() {
     // Short delay to ensure content script is ready
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const response = await browserAPI.tabs.sendMessage(tab.id, { 
+    const response = await browserAPI.tabs.sendMessage(tab.id, {
       action: 'getContent'
     }).catch(err => {
       console.error('Message error:', err);
@@ -242,13 +271,13 @@ async function loadTabContent() {
 
     content.value = response.content;
     lastContent = response.content;
-    
+
     if (pollInterval) {
       clearInterval(pollInterval);
     }
-    
+
     pollInterval = setInterval(pollForContentChanges, 1000);
-    
+
   } catch (error) {
     console.error('Error:', error);
     content.value = 'Could not get page content. Please try refreshing the page.';
@@ -262,7 +291,7 @@ async function handleQuickAction() {
   const loading = document.getElementById('loading');
   const responseArea = document.getElementById('response');
   const content = document.getElementById('content').value;
-  
+
   if (!loading || !responseArea || !content) {
     console.error('Required elements not found');
     return;
@@ -270,7 +299,7 @@ async function handleQuickAction() {
 
   loading.classList.remove('hidden');
   responseArea.textContent = '';
-  
+
   try {
     const settings = await browserAPI.storage.sync.get({
       proofreadPrompt: defaultPrompts.proofread,
@@ -278,26 +307,26 @@ async function handleQuickAction() {
       rewritePrompt: defaultPrompts.rewrite,
       makeListPrompt: defaultPrompts.makeList
     });
-    
+
     const action = this.dataset.action;
     const promptKey = `${action}Prompt`;
     const promptText = String(settings[promptKey] || defaultPrompts[action]);
-    
+
     // Send the prompt + content to the API
     const result = await browserAPI.runtime.sendMessage({
       action: 'sendToAPI',
       content: `${promptText} ${content}`
     });
-    
+
     if (browserAPI.runtime.lastError) {
       throw new Error(browserAPI.runtime.lastError.message);
     }
-    
+
     displayResponse(result);
   } catch (error) {
     console.error('Communication error:', error);
-    displayResponse({ 
-      success: false, 
+    displayResponse({
+      success: false,
       error: error.message || 'Failed to communicate with extension. Please try reloading.'
     });
   } finally {
@@ -310,7 +339,7 @@ async function handleSendToChat() {
   const responseArea = document.getElementById('response');
   const content = document.getElementById('content');
   const question = document.getElementById('question');
-  
+
   if (!loading || !responseArea || !content || !question) {
     console.error('Required elements not found');
     return;
@@ -318,22 +347,22 @@ async function handleSendToChat() {
 
   loading.classList.remove('hidden');
   responseArea.textContent = '';
-  
+
   try {
     const result = await browserAPI.runtime.sendMessage({
       action: 'sendToAPI',
       content: `Context: ${content.value}\n\nQuestion: ${question.value}`
     });
-    
+
     if (browserAPI.runtime.lastError) {
       throw new Error(browserAPI.runtime.lastError.message);
     }
-    
+
     displayResponse(result);
   } catch (error) {
     console.error('Communication error:', error);
-    displayResponse({ 
-      success: false, 
+    displayResponse({
+      success: false,
       error: error.message || 'Failed to communicate with extension. Please try reloading.'
     });
   } finally {
@@ -358,7 +387,7 @@ function clearUIState() {
   const responseArea = document.getElementById('response');
   const clearQuestion = document.getElementById('clearQuestion');
   const sendToChat = document.getElementById('sendToChat');
-  
+
   if (question) question.value = '';
   if (responseArea) responseArea.innerHTML = '<div id="responseContent"></div>';
   if (clearQuestion) clearQuestion.classList.add('hidden');
@@ -415,7 +444,7 @@ function displayResponse(response) {
 
     let htmlContent = marked.parse(response.message.trim());
     responseContent.innerHTML = htmlContent;
-    
+
     if (typeof hljs !== 'undefined') {
       responseContent.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
@@ -436,7 +465,7 @@ function displayResponse(response) {
 
 function initializeResponseArea() {
   let responseArea = document.getElementById('response');
-  
+
   // If response area doesn't exist, create it
   if (!responseArea) {
     responseArea = document.createElement('div');
@@ -471,16 +500,16 @@ async function updateFooterInfo() {
   try {
     const settings = await browserAPI.storage.sync.get(['apiUrl', 'modelName']);
     console.log('Footer info update:', settings);
-    
+
     const apiUrlDisplay = document.getElementById('apiUrlDisplay');
     const modelNameDisplay = document.getElementById('modelNameDisplay');
-    
+
     if (apiUrlDisplay) {
       const displayUrl = settings.apiUrl || 'API URL not set';
       apiUrlDisplay.textContent = displayUrl;
       apiUrlDisplay.title = displayUrl;
     }
-    
+
     if (modelNameDisplay) {
       const displayModel = settings.modelName || 'meta-llama/Llama-2-7b-chat';
       modelNameDisplay.textContent = displayModel;
@@ -498,7 +527,7 @@ browserAPI.storage.onChanged.addListener((changes, namespace) => {
     if (changes.theme) {
       applyTheme(changes.theme.newValue);
     }
-    
+
     // Update footer info if relevant settings changed
     if (changes.apiUrl || changes.modelName) {
       updateFooterInfo();
@@ -539,10 +568,10 @@ function initializeSettings() {
   if (settingsButton && settingsPanel) {
     // Remove any existing listeners first
     settingsButton.replaceWith(settingsButton.cloneNode(true));
-    
+
     // Get the fresh reference after replacing
     const newSettingsButton = document.getElementById('toggleSettings');
-    
+
     // Add new click listener
     newSettingsButton.addEventListener('click', (e) => {
       e.preventDefault();
@@ -568,7 +597,7 @@ function initializeSettings() {
   if (saveSettingsButton) {
     // Remove any existing listeners
     saveSettingsButton.replaceWith(saveSettingsButton.cloneNode(true));
-    
+
     // Get fresh reference and add listener
     document.getElementById('saveSettings').addEventListener('click', handleSaveSettings);
   }
@@ -577,6 +606,65 @@ function initializeSettings() {
   const apiTypeSelect = document.getElementById('apiType');
   if (apiTypeSelect) {
     apiTypeSelect.addEventListener('change', handleApiTypeChange);
+  }
+
+  // Handoff Toggle Listener
+  const handoffToggle = document.getElementById('handoffToggle');
+  if (handoffToggle) {
+    handoffToggle.addEventListener('change', async (e) => {
+      const enabled = e.target.checked;
+      const controls = document.getElementById('handoffControls');
+      const status = document.getElementById('handoffStatus');
+
+      // UI Updates
+      if (enabled) {
+        controls.classList.remove('hidden');
+        status.textContent = "Scanning...";
+        status.className = "px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+      } else {
+        controls.classList.add('hidden');
+        status.textContent = "Disabled";
+        status.className = "px-2 py-0.5 rounded-full bg-surface-100 text-surface-600 dark:bg-dark-surface-200 dark:text-dark-surface-400";
+      }
+
+      // Save state immediately
+      await browserAPI.storage.sync.set({ handoffEnabled: enabled });
+
+      // Notify Content Script
+      try {
+        const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+        if (tab && tab.url.includes('web.whatsapp.com')) {
+          await browserAPI.tabs.sendMessage(tab.id, {
+            action: 'toggleHandoff',
+            enabled: enabled,
+            persona: document.getElementById('systemPersona').value
+          });
+        }
+      } catch (err) {
+        console.warn('Could not notify content script:', err);
+      }
+    });
+  }
+
+  // Save Persona on blur
+  const systemPersona = document.getElementById('systemPersona');
+  if (systemPersona) {
+    systemPersona.addEventListener('blur', async (e) => {
+      await browserAPI.storage.sync.set({ systemPersona: e.target.value });
+      // Notify Content Script of update
+      try {
+        const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+        const enabled = document.getElementById('handoffToggle').checked;
+        if (tab && tab.url.includes('web.whatsapp.com') && enabled) {
+          await browserAPI.tabs.sendMessage(tab.id, {
+            action: 'updatePersona',
+            persona: e.target.value
+          });
+        }
+      } catch (err) {
+        console.warn('Could not notify content script:', err);
+      }
+    });
   }
 }
 
@@ -589,9 +677,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initializeTheme();
   initializeResponseArea();
-  updateFooterInfo(); 
+  updateFooterInfo();
   initializeSettings(); // Add this line
-  
+
   // Use event delegation instead of multiple listeners
   document.addEventListener('click', (e) => {
     const quickButton = e.target.closest('.quick[data-action]');
@@ -607,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsLink.addEventListener('click', (e) => {
       e.preventDefault();
       // Prevent this event from being handled by quick action handlers
-      e.stopPropagation(); 
+      e.stopPropagation();
       window.location.href = 'settings.html';
     });
   }
@@ -622,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add question input validation
   const questionInput = document.getElementById('question');
   const sendToChat = document.getElementById('sendToChat');
-  
+
   if (questionInput) {
     questionInput.addEventListener('input', () => {
       if (sendToChat) {
@@ -638,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize question input and clear button  
   const clearQuestion = document.getElementById('clearQuestion');
-  
+
   if (clearQuestion && questionInput) {
     // Check initial state
     clearQuestion.classList.toggle('hidden', !questionInput.value.trim());

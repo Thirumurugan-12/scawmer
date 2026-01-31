@@ -25,7 +25,7 @@ async function sendToAPI(content) {
   const requestPromise = (async () => {
     try {
       const settings = await browserAPI.storage.sync.get(['apiType', 'apiUrl', 'apiToken', 'modelName', 'maxTokens']);
-      
+
       let apiUrl = settings.apiUrl;
       if (settings.apiType === 'huggingface') {
         if (!settings.modelName) {
@@ -57,8 +57,8 @@ async function sendToAPI(content) {
 
       return { success: true, message: chatCompletion.choices[0].message.content.trim() };
     } catch (error) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: error.message
       };
     } finally {
@@ -78,12 +78,35 @@ const messageHandler = (request, sender, sendResponse) => {
     sendToAPI(request.content)
       .then(sendResponse)
       .catch(error => {
-        sendResponse({ 
-          success: false, 
+        sendResponse({
+          success: false,
           error: error.message || 'API request failed'
         });
       });
     return true; // Required for async response
+  }
+
+  if (request.action === 'capture_screenshot') {
+    browserAPI.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+      if (browserAPI.runtime.lastError) {
+        console.error('Screenshot failed:', browserAPI.runtime.lastError);
+        return;
+      }
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `scam-evidence-${timestamp}.png`;
+
+      try {
+        browserAPI.downloads.download({
+          url: dataUrl,
+          filename: filename,
+          saveAs: false
+        });
+      } catch (e) {
+        console.error("Download failed", e);
+      }
+    });
+    return true;
   }
 };
 
@@ -103,7 +126,6 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
             changes
           });
         } catch (error) {
-          // Ignore errors for inactive tabs
           console.debug('Could not send to tab:', tab.id);
         }
       });
@@ -116,7 +138,7 @@ browserAPI.action.onClicked.addListener(async (tab) => {
   if (tab.url.startsWith('chrome://') || tab.url.startsWith('about:')) {
     return; // Can't open on browser internal URLs
   }
-  
+
   try {
     await openSidePanel(tab);
   } catch (error) {
