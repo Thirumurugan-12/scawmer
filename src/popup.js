@@ -49,7 +49,7 @@ const defaultPrompts = {
 async function loadSettings() {
   const settings = await browserAPI.storage.sync.get({
     apiType: 'custom',
-    apiUrl: 'http://localhost:8000',
+    apiUrl: 'http://localhost:11434',
     apiToken: '',
     modelName: 'meta-llama/Llama-2-7b-chat',
     maxTokens: 500,
@@ -73,7 +73,7 @@ async function loadSettings() {
 
   // Show/hide API URL based on API type
   const customApiSection = document.getElementById('customApiSection');
-  customApiSection.style.display = settings.apiType === 'custom' ? 'block' : 'none';
+  customApiSection.style.display = settings.apiType !== 'huggingface' ? 'block' : 'none';
 
   // Populate prompt fields
   document.getElementById('proofreadPrompt').value = settings.proofreadPrompt || defaultPrompts.proofread;
@@ -110,7 +110,7 @@ async function loadSettings() {
 // Add API type change handler
 function handleApiTypeChange(event) {
   const customApiSection = document.getElementById('customApiSection');
-  customApiSection.style.display = event.target.value === 'custom' ? 'block' : 'none';
+  customApiSection.style.display = event.target.value !== 'huggingface' ? 'block' : 'none';
 }
 
 // Modify handleSaveSettings to handle API type
@@ -133,6 +133,9 @@ async function handleSaveSettings() {
     if (apiType === 'custom') {
       apiUrl = document.getElementById('apiUrl').value.trim();
       if (!apiUrl) throw new Error('API URL is required for custom API');
+    } else if (apiType === 'ollama') {
+      apiUrl = document.getElementById('apiUrl').value.trim();
+      if (!apiUrl) apiUrl = 'http://localhost:11434';
     } else {
       // For Hugging Face, construct the URL using the model name
       if (!modelName) throw new Error('Model name is required for Hugging Face API');
@@ -140,7 +143,7 @@ async function handleSaveSettings() {
     }
 
     // Validate
-    if (apiType === 'custom' && !apiUrl) throw new Error('API URL is required');
+    if ((apiType === 'custom' || apiType === 'ollama') && !apiUrl) throw new Error('API URL is required');
     if (!maxTokens || maxTokens < 1 || maxTokens > 2048) {
       throw new Error('Max tokens must be between 1 and 2048');
     }

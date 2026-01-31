@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,7 @@
             :root {
                 --sidebar-width: 400px;
             }
-            
+
             body {
                 width: var(--sidebar-width);
                 max-width: var(--sidebar-width);
@@ -21,7 +22,7 @@
                 height: 100vh;
                 overflow-x: hidden;
             }
-            
+
             .container {
                 width: var(--sidebar-width);
                 height: 100vh;
@@ -34,7 +35,9 @@
             }
 
             /* Make text inputs and buttons fit */
-            textarea, input, button {
+            textarea,
+            input,
+            button {
                 max-width: calc(var(--sidebar-width) - 20px);
             }
 
@@ -46,60 +49,69 @@
         }
     </style>
 </head>
+
 <body class="bg-surface-50 dark:bg-dark-surface-50 w-full h-screen overflow-hidden flex flex-col">
     <div class="h-full flex flex-col">
         <!-- Header -->
-        <div class="sticky top-0 bg-white/90 dark:bg-dark-surface-100/90 backdrop-blur-md border-b border-surface-200 dark:border-dark-surface-200 px-4 py-3 flex justify-between items-center">
+        <div
+            class="sticky top-0 bg-white/90 dark:bg-dark-surface-100/90 backdrop-blur-md border-b border-surface-200 dark:border-dark-surface-200 px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-2">
-            <i class="ri-robot-line text-xl text-primary-600"></i>
-            <h1 class="text-lg font-semibold text-surface-900 dark:text-dark-surface-900">AI Assistant</h1>
+                <i class="ri-robot-line text-xl text-primary-600"></i>
+                <h1 class="text-lg font-semibold text-surface-900 dark:text-dark-surface-900">AI Assistant</h1>
             </div>
-            <button id="toggleSettings" 
+            <button id="toggleSettings"
                 class="px-3 py-1.5 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-1.5 transition-all">
-            <i class="ri-settings-3-line"></i>
-            <span>Settings</span>
+                <i class="ri-settings-3-line"></i>
+                <span>Settings</span>
             </button>
         </div>
 
         <!-- Settings Panel -->
-        <div id="settingsPanel" 
-             class="hidden fixed inset-0 z-[9999] bg-surface-50/95 dark:bg-dark-surface-50/95 p-4 overflow-y-auto">
-            <div class="bg-white dark:bg-dark-surface-100 rounded-xl border border-surface-200 dark:border-dark-surface-200 p-4 shadow-soft max-w-md mx-auto">
+        <div id="settingsPanel"
+            class="hidden fixed inset-0 z-[9999] bg-surface-50/95 dark:bg-dark-surface-50/95 p-4 overflow-y-auto">
+            <div
+                class="bg-white dark:bg-dark-surface-100 rounded-xl border border-surface-200 dark:border-dark-surface-200 p-4 shadow-soft max-w-md mx-auto">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-surface-900 dark:text-dark-surface-900">Settings</h2>
-                    <button id="closeSettings" class="text-surface-500 hover:text-surface-700 dark:text-dark-surface-500 dark:hover:text-dark-surface-700">
+                    <button id="closeSettings"
+                        class="text-surface-500 hover:text-surface-700 dark:text-dark-surface-500 dark:hover:text-dark-surface-700">
                         <i class="ri-close-line text-xl"></i>
                     </button>
                 </div>
-                
+
                 <div class="space-y-3">
                     <!-- API Settings Group -->
                     <div class="space-y-2">
                         <label class="block">
-                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">API Type</span>
-                            <select id="apiType" 
+                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">API
+                                Type</span>
+                            <select id="apiType"
                                 class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                                 <option value="custom">Custom API</option>
                                 <option value="huggingface">Hugging Face</option>
+                                <option value="ollama">Ollama</option>
                             </select>
                         </label>
 
                         <div id="customApiSection">
                             <label class="block">
-                                <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">API URL</span>
-                                <input type="text" id="apiUrl" 
+                                <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">API
+                                    URL</span>
+                                <input type="text" id="apiUrl"
                                     class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                     placeholder="http://localhost:8000">
                             </label>
                         </div>
 
                         <label class="block">
-                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">API Token</span>
+                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">API
+                                Token</span>
                             <div class="relative">
-                                <input type="password" id="apiToken" 
+                                <input type="password" id="apiToken"
                                     class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                     placeholder="Your API token">
-                                <button id="toggleToken" class="absolute right-2 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600">
+                                <button id="toggleToken"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600">
                                     <i class="ri-eye-line"></i>
                                 </button>
                             </div>
@@ -109,23 +121,26 @@
                     <!-- Model Settings Group -->
                     <div class="space-y-2">
                         <label class="block">
-                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Model Name</span>
-                            <input type="text" id="modelName" 
+                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Model
+                                Name</span>
+                            <input type="text" id="modelName"
                                 class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                 placeholder="meta-llama/Llama-2-7b-chat">
                         </label>
 
                         <div class="grid grid-cols-2 gap-3">
                             <label class="block">
-                                <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Max Tokens</span>
-                                <input type="number" id="maxTokens" 
+                                <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Max
+                                    Tokens</span>
+                                <input type="number" id="maxTokens"
                                     class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                     min="1" max="2048" placeholder="500">
                             </label>
 
                             <label class="block">
-                                <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Theme</span>
-                                <select id="theme" 
+                                <span
+                                    class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Theme</span>
+                                <select id="theme"
                                     class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                                     <option value="light">Light</option>
                                     <option value="dark">Dark</option>
@@ -137,33 +152,39 @@
 
                     <!-- Prompt Settings Group -->
                     <div class="space-y-2">
-                        <h3 class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Quick Action Prompts</h3>
+                        <h3 class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Quick Action Prompts
+                        </h3>
                         <label class="block">
-                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Proofread Prompt</span>
-                            <input type="text" id="proofreadPrompt" 
+                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Proofread
+                                Prompt</span>
+                            <input type="text" id="proofreadPrompt"
                                 class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                         </label>
                         <label class="block">
-                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Summarize Prompt</span>
-                            <input type="text" id="summarizePrompt" 
+                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Summarize
+                                Prompt</span>
+                            <input type="text" id="summarizePrompt"
                                 class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                         </label>
                         <label class="block">
-                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Rewrite Prompt</span>
-                            <input type="text" id="rewritePrompt" 
+                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">Rewrite
+                                Prompt</span>
+                            <input type="text" id="rewritePrompt"
                                 class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                         </label>
                         <label class="block">
-                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">List Prompt</span>
-                            <input type="text" id="makeListPrompt" 
+                            <span class="text-xs font-medium text-surface-700 dark:text-dark-surface-700">List
+                                Prompt</span>
+                            <input type="text" id="makeListPrompt"
                                 class="mt-1 w-full h-8 px-2 text-sm rounded-md border-surface-200 dark:border-dark-surface-200 bg-white dark:bg-dark-surface-100 text-surface-900 dark:text-dark-surface-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                         </label>
                     </div>
                 </div>
 
-                <div class="mt-4 flex items-center justify-between pt-3 border-t border-surface-200 dark:border-dark-surface-200">
+                <div
+                    class="mt-4 flex items-center justify-between pt-3 border-t border-surface-200 dark:border-dark-surface-200">
                     <span id="saveMessage" class="text-xs text-surface-600 dark:text-dark-surface-600 hidden"></span>
-                    <button id="saveSettings" 
+                    <button id="saveSettings"
                         class="px-4 py-1.5 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                         Save Changes
                     </button>
@@ -176,21 +197,25 @@
             <div class="space-y-1.5 border-b border-surface-200 dark:border-dark-surface-200 pb-4 mb-2">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-medium text-surface-700 dark:text-dark-surface-700">Scammer Handoff</h2>
-                     <label class="relative inline-flex items-center cursor-pointer">
+                    <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="handoffToggle" class="sr-only peer">
-                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                        <div
+                            class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600">
+                        </div>
                     </label>
                 </div>
-                
+
                 <div id="handoffControls" class="hidden space-y-2 mt-2">
-                     <div class="flex items-center gap-2 text-xs">
+                    <div class="flex items-center gap-2 text-xs">
                         <span class="font-medium text-surface-600 dark:text-dark-surface-600">Status:</span>
-                        <span id="handoffStatus" class="px-2 py-0.5 rounded-full bg-surface-100 text-surface-600 dark:bg-dark-surface-200 dark:text-dark-surface-400">Disabled</span>
+                        <span id="handoffStatus"
+                            class="px-2 py-0.5 rounded-full bg-surface-100 text-surface-600 dark:bg-dark-surface-200 dark:text-dark-surface-400">Disabled</span>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-xs font-medium text-surface-600 dark:text-dark-surface-600">System Persona</label>
-                        <textarea id="systemPersona" 
-                            class="w-full h-16 p-2 text-xs rounded-lg border border-surface-200/75 dark:border-dark-surface-200/75 bg-white/50 dark:bg-dark-surface-100/50 focus:bg-white dark:focus:bg-dark-surface-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 resize-none transition-all dark:text-dark-surface-900" 
+                        <label class="text-xs font-medium text-surface-600 dark:text-dark-surface-600">System
+                            Persona</label>
+                        <textarea id="systemPersona"
+                            class="w-full h-16 p-2 text-xs rounded-lg border border-surface-200/75 dark:border-dark-surface-200/75 bg-white/50 dark:bg-dark-surface-100/50 focus:bg-white dark:focus:bg-dark-surface-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 resize-none transition-all dark:text-dark-surface-900"
                             placeholder="You are a gullible elderly person..."></textarea>
                     </div>
                 </div>
@@ -198,77 +223,86 @@
             <!-- Context Section -->
             <div class="space-y-1.5">
                 <h2 class="text-sm font-medium text-surface-700 dark:text-dark-surface-700">Context</h2>
-                <textarea id="content" 
-                          class="w-full h-20 p-1 text-xs rounded-lg border border-surface-200/75 dark:border-dark-surface-200/75 bg-white/50 dark:bg-dark-surface-100/50 focus:bg-white dark:focus:bg-dark-surface-100 shadow-sm hover:shadow focus:border-primary-500 focus:ring-primary-500 resize-none transition-all overflow-y-auto dark:text-dark-surface-900" 
-                          placeholder="Paste or type text here, or wait for page content to load..."></textarea>
+                <textarea id="content"
+                    class="w-full h-20 p-1 text-xs rounded-lg border border-surface-200/75 dark:border-dark-surface-200/75 bg-white/50 dark:bg-dark-surface-100/50 focus:bg-white dark:focus:bg-dark-surface-100 shadow-sm hover:shadow focus:border-primary-500 focus:ring-primary-500 resize-none transition-all overflow-y-auto dark:text-dark-surface-900"
+                    placeholder="Paste or type text here, or wait for page content to load..."></textarea>
             </div>
 
             <!-- Quick Actions -->
             <div class="grid grid-cols-4 gap-2">
-                <button class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0" data-action="proofread">
+                <button
+                    class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0"
+                    data-action="proofread">
                     <i class="ri-spell-check-line text-sm shrink-0"></i>
                     <span class="truncate">Proofread</span>
                 </button>
-                <button class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0" data-action="summarize">
+                <button
+                    class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0"
+                    data-action="summarize">
                     <i class="ri-file-list-3-line text-sm shrink-0"></i>
                     <span class="truncate">Summarize</span>
                 </button>
-                <button class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0" data-action="rewrite">
+                <button
+                    class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0"
+                    data-action="rewrite">
                     <i class="ri-pen-nib-line text-sm shrink-0"></i>
                     <span class="truncate">Rewrite</span>
                 </button>
-                <button class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0" data-action="makeList">
+                <button
+                    class="button quick px-2 py-1.5 bg-white dark:bg-dark-surface-100 hover:bg-surface-50 dark:hover:bg-dark-surface-200 border border-surface-200/75 dark:border-dark-surface-200/75 rounded-lg flex items-center justify-center gap-1 text-[10px] text-surface-600 dark:text-dark-surface-600 hover:text-surface-900 dark:hover:text-dark-surface-900 hover:border-surface-300 dark:hover:border-dark-surface-300 transition-all h-8 min-w-0"
+                    data-action="makeList">
                     <i class="ri-list-check text-sm shrink-0"></i>
                     <span class="truncate">List</span>
                 </button>
             </div>
-            
+
             <!-- Question Section -->
             <div class="relative space-y-1.5">
                 <h2 class="text-sm font-medium text-surface-700 dark:text-dark-surface-700">Your Question</h2>
                 <div class="relative">
-                    <textarea id="question" 
-                              class="w-full h-10 p-1 text-xs border border-surface-200/75 dark:border-dark-surface-200/75 bg-white/50 dark:bg-dark-surface-100/50 focus:bg-white dark:focus:bg-dark-surface-100 shadow-sm hover:shadow focus:border-primary-500 focus:ring-primary-500 resize-none transition-all overflow-y-auto dark:text-dark-surface-900" 
-                              placeholder="What would you like to know?"></textarea>
-                    <button id="clearQuestion" 
-                            class="absolute right-2 top-2 p-1.5 text-surface-400 dark:text-dark-surface-400 hover:text-surface-600 dark:hover:text-dark-surface-600 rounded-full hover:bg-surface-100 dark:hover:bg-dark-surface-100 transition-all">
+                    <textarea id="question"
+                        class="w-full h-10 p-1 text-xs border border-surface-200/75 dark:border-dark-surface-200/75 bg-white/50 dark:bg-dark-surface-100/50 focus:bg-white dark:focus:bg-dark-surface-100 shadow-sm hover:shadow focus:border-primary-500 focus:ring-primary-500 resize-none transition-all overflow-y-auto dark:text-dark-surface-900"
+                        placeholder="What would you like to know?"></textarea>
+                    <button id="clearQuestion"
+                        class="absolute right-2 top-2 p-1.5 text-surface-400 dark:text-dark-surface-400 hover:text-surface-600 dark:hover:text-dark-surface-600 rounded-full hover:bg-surface-100 dark:hover:bg-dark-surface-100 transition-all">
                         <i class="ri-close-line text-lg"></i>
                     </button>
                 </div>
             </div>
-            
+
             <!-- Response Section -->
             <div class="space-y-1.5 flex-1 min-h-0">
                 <div class="flex justify-between items-center">
                     <h2 class="text-sm font-medium text-surface-700 dark:text-dark-surface-700">AI Response</h2>
-                    <button id="copyToClipboard" 
-                            disabled
-                            class="h-6 px-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center justify-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-[10px]">
+                    <button id="copyToClipboard" disabled
+                        class="h-6 px-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center justify-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-[10px]">
                         <i class="ri-file-copy-line text-sm"></i>
                         <span class="font-medium">copy to clipboard</span>
                     </button>
                 </div>
-                <div id="response" class="bg-white/50 dark:bg-dark-surface-100/50 rounded-lg border border-surface-200/75 dark:border-dark-surface-200/75 p-3 overflow-y-auto shadow-sm" style="height: calc(100% - 1.5rem)">
+                <div id="response"
+                    class="bg-white/50 dark:bg-dark-surface-100/50 rounded-lg border border-surface-200/75 dark:border-dark-surface-200/75 p-3 overflow-y-auto shadow-sm"
+                    style="height: calc(100% - 1.5rem)">
                     <div id="responseContent"></div>
                 </div>
             </div>
-            
+
             <!-- Loading State -->
             <div id="loading" class="hidden flex justify-center items-center py-2">
                 <div class="animate-spin rounded-full h-6 w-6 border-2 border-primary-600 border-t-transparent"></div>
             </div>
 
             <!-- Submit Button -->
-            <button id="sendToChat" 
-                    disabled
-                    class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0">
+            <button id="sendToChat" disabled
+                class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0">
                 <i class="ri-send-plane-line text-lg"></i>
                 <span class="font-medium">Ask Assistant</span>
             </button>
         </div>
 
         <!-- Footer -->
-        <div class="px-4 py-2 border-t border-surface-200 dark:border-dark-surface-200 bg-white/90 dark:bg-dark-surface-100/90 backdrop-blur-md">
+        <div
+            class="px-4 py-2 border-t border-surface-200 dark:border-dark-surface-200 bg-white/90 dark:bg-dark-surface-100/90 backdrop-blur-md">
             <div class="flex flex-col items-center gap-1 text-xs">
                 <div class="flex items-center gap-1 text-surface-500 dark:text-dark-surface-500">
                     <i class="ri-server-line"></i>
@@ -278,8 +312,8 @@
                     <i class="ri-brain-line"></i>
                     <span id="modelNameDisplay" class="truncate max-w-[200px]">Loading...</span>
                 </div>
-                <a href="https://github.com/abhishekkrthakur/chat-ext" target="_blank" rel="noopener noreferrer" 
-                   class="text-surface-500 dark:text-dark-surface-500 hover:text-primary-600 dark:hover:text-primary-600 flex items-center gap-1 transition-colors">
+                <a href="https://github.com/abhishekkrthakur/chat-ext" target="_blank" rel="noopener noreferrer"
+                    class="text-surface-500 dark:text-dark-surface-500 hover:text-primary-600 dark:hover:text-primary-600 flex items-center gap-1 transition-colors">
                     <i class="ri-github-line"></i>
                     <span>View on GitHub</span>
                 </a>
@@ -287,4 +321,5 @@
         </div>
     </div>
 </body>
+
 </html>
