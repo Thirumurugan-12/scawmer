@@ -161,6 +161,7 @@ const messageHandler = (request, sender, sendResponse) => {
   }
 };
 
+
 // Remove any existing listeners and add the new one
 browserAPI.runtime.onMessage.removeListener(messageHandler);
 browserAPI.runtime.onMessage.addListener(messageHandler);

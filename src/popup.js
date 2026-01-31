@@ -795,6 +795,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
+
   // Start content loading
   loadTabContent();
 

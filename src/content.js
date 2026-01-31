@@ -95,19 +95,20 @@ class WhatsAppAutomation {
 
     // Selectors (Best effort, attribute based where possible)
     this.selectors = {
-      // The main chat container usually has aria-label="Message list"
-      // Fallback to div#main layout if specific aria-label is missing
-      messageList: 'div[aria-label="Message list"], div#main div[role="region"]',
+      // Primary container: The right side panel with ID 'main'
+      mainPanel: '#main',
 
-      // Incoming messages
+      // We'll try to refine this dynamically, but #main is the anchor
+      messageList: 'div[aria-label="Message list"]',
+
+      // Incoming messages - generic row role
       messageRow: 'div[role="row"]',
 
-      // Input box - usually contenteditable
-      inputBox: 'div[contenteditable="true"][data-tab="10"], #main div[contenteditable="true"]',
+      // Input box
+      inputBox: '#main footer div[contenteditable="true"], #main div[contenteditable="true"]',
 
       // Send button
-      sendButton: 'button[aria-label="Send"]',
-      sendIcon: 'span[data-icon="send"]'
+      sendButton: 'span[data-icon="send"]'
     };
 
     console.log("[WA-Auto] Initialized");
@@ -131,20 +132,30 @@ class WhatsAppAutomation {
   }
 
   startObservation() {
-    // Try to find the message list
+    // Strategy 1: Try specific aria-label (English)
     let list = document.querySelector(this.selectors.messageList);
 
-    // Fallback: looking for the scrollable container in #main
+    // Strategy 2: Look for #main and find the scrollable container
     if (!list) {
-      const main = document.getElementById('main');
+      const main = document.querySelector(this.selectors.mainPanel);
       if (main) {
-        // usually the second child or so is the message list container with tabindex=0
-        list = main.querySelector('div[tabindex="0"]') || main;
+        console.log("[WA-Auto] Found #main panel, searching for message container...");
+        // The message list is usually the child with tabindex="0" or just a large container
+        list = main.querySelector('div[tabindex="0"]');
+
+        // If still not found, just use #main itself as the observer target
+        // This is a bit noisy but GUARANTEED to work if we are in a chat
+        if (!list) {
+          console.log("[WA-Auto] Using #main as observer target (Fallback)");
+          list = main;
+        }
+      } else {
+        console.log("[WA-Auto] #main panel not found. Are you in a chat?");
       }
     }
 
     if (!list) {
-      console.warn("[WA-Auto] Chat content not found. Please click on a contact to open a chat.");
+      console.warn("[WA-Auto] Message list not found. Open a chat first.");
       // Retry in a bit?
       setTimeout(() => { if (this.enabled) this.startObservation(); }, 2000);
       return;
@@ -153,15 +164,16 @@ class WhatsAppAutomation {
     if (this.observer) this.observer.disconnect();
 
     this.observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length) {
-          this.handleNewMessage();
-        }
+      // Debounce or filter?
+      // simple check: do we have new nodes?
+      const hasUpdates = mutations.some(m => m.addedNodes.length > 0);
+      if (hasUpdates) {
+        this.handleNewMessage();
       }
     });
 
     this.observer.observe(list, { childList: true, subtree: true });
-    console.log("[WA-Auto] Listening for messages...");
+    console.log("[WA-Auto] Listening for messages on:", list);
   }
 
   stopObservation() {
