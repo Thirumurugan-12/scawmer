@@ -272,10 +272,19 @@ class WhatsAppAutomation {
     await new Promise(r => setTimeout(r, 500));
 
     // Click Send
-    const sendBtn = document.querySelector(this.selectors.sendButton) || document.querySelector(this.selectors.sendIcon)?.closest('button');
+    // Try multiple selectors
+    let sendBtn = document.querySelector('span[data-icon="send"]');
+    if (!sendBtn) sendBtn = document.querySelector('button[aria-label="Send"]');
+
+    // Sometimes the icon is inside a button
+    if (sendBtn && sendBtn.tagName === 'SPAN') {
+      sendBtn = sendBtn.closest('button');
+    }
+
     if (sendBtn) {
       sendBtn.click();
     } else {
+      console.log("[WA-Auto] Send button not found, trying Enter key");
       // Fallback: Dispatch Enter key
       const event = new KeyboardEvent('keydown', {
         bubbles: true,
