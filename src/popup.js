@@ -637,11 +637,25 @@ function initializeSettings() {
       try {
         const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
         if (tab && tab.url.includes('web.whatsapp.com')) {
-          await browserAPI.tabs.sendMessage(tab.id, {
-            action: 'toggleHandoff',
-            enabled: enabled,
-            persona: document.getElementById('systemPersona').value
-          });
+          // Add a simple retry mechanism or check if responsive
+          const sendMessage = async (retries = 3) => {
+            try {
+              await browserAPI.tabs.sendMessage(tab.id, {
+                action: 'toggleHandoff',
+                enabled: enabled,
+                persona: document.getElementById('systemPersona').value
+              });
+            } catch (err) {
+              if (retries > 0 && err.message.includes('Receiving end does not exist')) {
+                console.log("Content script not ready, retrying...");
+                await new Promise(r => setTimeout(r, 500));
+                await sendMessage(retries - 1);
+              } else {
+                throw err;
+              }
+            }
+          };
+          await sendMessage();
         }
       } catch (err) {
         console.warn('Could not notify content script:', err);
@@ -753,9 +767,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const copyButton = document.getElementById('copyToClipboard');
   if (copyButton) {
     copyButton.addEventListener('click', handleCopyToClipboard);
+  }
+
+  // Analyze Screen Button
+  const analyzeBtn = document.getElementById('analyzeScreen');
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', async () => {
+      const loading = document.getElementById('loading');
+      const responseArea = document.getElementById('response');
+
+      if (!loading || !responseArea) return;
+
+      loading.classList.remove('hidden');
+      responseArea.textContent = '';
+
+      try {
+        const result = await browserAPI.runtime.sendMessage({ action: 'analyze_screen' });
+        displayResponse(result);
+      } catch (error) {
+        console.error(error);
+        displayResponse({ success: false, error: error.message });
+      } finally {
+        loading.classList.add('hidden');
+      }
+    });
   }
 
   // Start content loading

@@ -27,6 +27,16 @@ class Client {
 
     if (this.apiType === 'ollama') {
       url = `${base}/api/chat`;
+
+      // Ollama expects 'images' field inside the message object
+      // params.messages is an array, we need to inject images into the last user message if present
+      if (params.images && params.images.length > 0) {
+        const lastMsg = body.messages[body.messages.length - 1];
+        if (lastMsg && lastMsg.role === 'user') {
+          lastMsg.images = params.images;
+        }
+      }
+
       Object.assign(body, { stream: false, options: { num_predict: params.max_tokens } });
       delete body.max_tokens;
     }

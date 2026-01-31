@@ -117,6 +117,48 @@ const messageHandler = (request, sender, sendResponse) => {
     });
     return true;
   }
+
+  if (request.action === 'analyze_screen') {
+    (async () => {
+      try {
+        const settings = await browserAPI.storage.sync.get(['apiType', 'apiUrl', 'apiToken', 'modelName', 'maxTokens']);
+
+        // Capture screenshot
+        const dataUrl = await new Promise((resolve, reject) => {
+          browserAPI.tabs.captureVisibleTab(null, { format: 'png' }, (data) => {
+            if (browserAPI.runtime.lastError) reject(browserAPI.runtime.lastError);
+            else resolve(data);
+          });
+        });
+
+        const base64Image = dataUrl.replace(/^data:image\/(png|jpeg);base64,/, "");
+
+        const client = new Client({
+          apiKey: settings.apiToken,
+          baseURL: settings.apiUrl || 'http://localhost:11434',
+          apiType: settings.apiType
+        });
+
+        const chatCompletion = await client.chat.completions.create({
+          model: settings.modelName || 'llava', // Default to a vision model if not specified
+          messages: [{ role: "user", content: "Analyze this image and provide a relevant reply/summary." }],
+          images: [base64Image],
+          max_tokens: parseInt(settings.maxTokens) || 500
+        });
+
+        if (!chatCompletion.choices?.[0]?.message) {
+          throw new Error('Invalid response from API.');
+        }
+
+        sendResponse({ success: true, message: chatCompletion.choices[0].message.content.trim() });
+
+      } catch (error) {
+        console.error('Analyze screen error:', error);
+        sendResponse({ success: false, error: error.message || 'Analysis failed' });
+      }
+    })();
+    return true;
+  }
 };
 
 // Remove any existing listeners and add the new one

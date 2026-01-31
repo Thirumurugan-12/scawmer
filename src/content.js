@@ -96,15 +96,16 @@ class WhatsAppAutomation {
     // Selectors (Best effort, attribute based where possible)
     this.selectors = {
       // The main chat container usually has aria-label="Message list"
-      messageList: 'div[aria-label="Message list"]',
-      // Incoming messages usually have a specific class or structure. 
-      // We often look for message-in class or similar, but it might change.
-      // A safer bet is checking aligned-left vs aligned-right containers if classes fail.
-      // For now, let's try to detect message rows.
+      // Fallback to div#main layout if specific aria-label is missing
+      messageList: 'div[aria-label="Message list"], div#main div[role="region"]',
+
+      // Incoming messages
       messageRow: 'div[role="row"]',
-      // Input box
-      inputBox: 'div[contenteditable="true"][data-tab="10"]',
-      // Send button container often contains span[data-icon="send"]
+
+      // Input box - usually contenteditable
+      inputBox: 'div[contenteditable="true"][data-tab="10"], #main div[contenteditable="true"]',
+
+      // Send button
       sendButton: 'button[aria-label="Send"]',
       sendIcon: 'span[data-icon="send"]'
     };
@@ -130,9 +131,20 @@ class WhatsAppAutomation {
   }
 
   startObservation() {
-    const list = document.querySelector(this.selectors.messageList);
+    // Try to find the message list
+    let list = document.querySelector(this.selectors.messageList);
+
+    // Fallback: looking for the scrollable container in #main
     if (!list) {
-      console.warn("[WA-Auto] Message list not found. Open a chat first.");
+      const main = document.getElementById('main');
+      if (main) {
+        // usually the second child or so is the message list container with tabindex=0
+        list = main.querySelector('div[tabindex="0"]') || main;
+      }
+    }
+
+    if (!list) {
+      console.warn("[WA-Auto] Chat content not found. Please click on a contact to open a chat.");
       // Retry in a bit?
       setTimeout(() => { if (this.enabled) this.startObservation(); }, 2000);
       return;
